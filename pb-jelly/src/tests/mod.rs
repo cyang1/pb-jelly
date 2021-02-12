@@ -58,7 +58,7 @@ impl Buf for VecReader {
         self.end - self.position
     }
 
-    fn bytes(&self) -> &[u8] {
+    fn chunk(&self) -> &[u8] {
         &self.contents[self.position..self.end]
     }
 
@@ -97,9 +97,8 @@ impl VecWriter {
     fn serialized(&self) -> Vec<u8> {
         let mut out = vec![];
         for content in &self.contents {
-            for b in content.bytes() {
-                out.push(*b);
-            }
+            // N.B. this only works because we know VecReader is contiguous
+            out.extend_from_slice(content.chunk());
         }
         out
     }
@@ -216,8 +215,8 @@ fn test_serialize_message_into_slice() {
 
     assert_eq!(deserialized.normal_data, message.normal_data);
     assert_eq!(
-        deserialized.payload.into_buffer().bytes(),
-        message.payload.into_buffer().bytes()
+        deserialized.payload.into_buffer().chunk(),
+        message.payload.into_buffer().chunk()
     );
 
     assert_eq!(serialized, vec![10, 3, 1, 2, 3, 18, 3, 4, 5, 6]);
@@ -247,8 +246,8 @@ fn test_serialize_message_into_vec_writer() {
 
     assert_eq!(deserialized.normal_data, message.normal_data);
     assert_eq!(
-        deserialized.payload.into_buffer().bytes(),
-        message.payload.into_buffer().bytes()
+        deserialized.payload.into_buffer().chunk(),
+        message.payload.into_buffer().chunk()
     );
 
     assert_eq!(serialized, vec![10, 3, 1, 2, 3, 18, 3, 4, 5, 6]);

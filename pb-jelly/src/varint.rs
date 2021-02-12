@@ -38,8 +38,8 @@ pub fn read<B: Buf>(buf: &mut B) -> io::Result<Option<u64>> {
     }
 
     // Find offset of first byte with MSB not set
-    let idx = match buf
-        .bytes()
+    let chunk = buf.chunk();
+    let idx = match chunk
         .iter()
         .enumerate()
         .find(|&(_, val)| *val < 0x80 as u8)
@@ -51,7 +51,7 @@ pub fn read<B: Buf>(buf: &mut B) -> io::Result<Option<u64>> {
     };
 
     let varint = {
-        let buf = &buf.bytes()[..=idx];
+        let buf = &chunk[..=idx];
 
         let mut r: u64 = 0;
         for byte in buf.iter().rev() {
@@ -88,7 +88,6 @@ pub fn ensure_read<B: Buf>(buf: &mut B) -> io::Result<u64> {
 #[test]
 fn test_basic() {
     use crate::Message;
-    use bytes::buf::ext::BufExt;
     use std::io::Cursor;
 
     let from_vec = |vec| read(&mut Cursor::new(vec)).unwrap().unwrap();

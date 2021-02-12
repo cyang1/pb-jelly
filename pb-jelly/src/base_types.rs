@@ -18,10 +18,7 @@ use byteorder::{
     WriteBytesExt,
 };
 use bytes::{
-    buf::{
-        ext::BufExt,
-        BufMut,
-    },
+    BufMut,
     Buf,
 };
 
